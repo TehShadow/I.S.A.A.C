@@ -13,9 +13,10 @@ print (volume)                          #printing current volume level
 engine.setProperty('volume',1.0)    # setting up volume level  between 0 and 1
 
 """VOICE"""
+# voices = engine.getProperty('voices')
+# print(voices)
+# engine.setProperty('voice', voices[1].id)
 voices = engine.getProperty('voices')
-print(voices)
 engine.setProperty('voice', voices[1].id)
-
-
+engine.runAndWait()
 

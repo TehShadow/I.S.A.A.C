@@ -8,6 +8,7 @@ from voice import engine
 from bot import bot
 from admin import admin
 import pyautogui
+from spotify import *
 
 
 
@@ -22,6 +23,11 @@ def talk(text):
 def there_exists(terms):
     for term in terms:
         if term in voice_data:
+            return True
+
+def spotify_exists(terms,action):
+    for term in terms:
+        if term in action:
             return True
 
 def become_active(terms):
@@ -67,6 +73,12 @@ def respond(voice_data):
                 talk(time)
 
                 return
+            if there_exists(["spotify"]):
+                action = record_audio("What do you want me to do on spotify?")
+
+                if spotify_exists(["pause" , "stop"] , action):
+                    pause_spotify()
+                    return
 
             if there_exists(["youtube"]):
                 search = record_audio("What do you want me to search for on youtube?")
@@ -120,6 +132,7 @@ bot = bot()
 
 sleep(1)
 
+talk(f"Welocome back {admin.name}")
 while(bot.BotStatus):
 
     print("listening...")
