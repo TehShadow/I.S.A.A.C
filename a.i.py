@@ -20,6 +20,11 @@ def talk(text):
     engine.runAndWait()
     return
 
+def gerenal_exists(terms,voice):
+    for term in terms:
+        if term in voice:
+            return True
+
 def there_exists(terms):
     for term in terms:
         if term in voice_data:
@@ -74,12 +79,47 @@ def respond(voice_data):
 
                 return
             if there_exists(["spotify"]):
-                action = record_audio("What do you want me to do on spotify?")
+                try:
+                    action = record_audio("What do you want me to do on spotify sir?")
 
-                if spotify_exists(["pause" , "stop"] , action):
-                    pause_spotify()
-                    return
-
+                    if spotify_exists(["pause" , "stop"] , action):
+                        pause_spotify()
+                        return
+                    if spotify_exists(["start" , "resume"] ,action):
+                        Start_Resume()
+                        return
+                    if spotify_exists(["volume" , "number"], action):
+                        number = record_audio("number sir?")
+                        number = int(number)
+                        volume(number)
+                        return
+                    if spotify_exists(["skip","next"],action):
+                        next()
+                        return
+                    if spotify_exists(["previous","before"] , action):
+                        previous()
+                        return
+                    if spotify_exists(["shuffle","random"],action):
+                        shuffle()
+                        return
+                    if spotify_exists(["search","find","look"],action):
+                        query = record_audio("What should i search for sir?")
+                        anwser = record_audio("Is that a track sir?")
+                        if gerenal_exists(["yes","i","yea"],anwser):
+                            result = search_Spotify(query)
+                        else: 
+                            result = search_Spotify(query,type="artist")
+                        if(result):
+                            trackName=result["trackName"]
+                            trackURI = result["track"]
+                            artistName = result["artistName"]
+                            talk(f"I found {trackName} by {artistName}")
+                            anwser = record_audio("Shoud i add it to the queue sir?")
+                            if gerenal_exists(["yes","i","yea"],anwser):
+                                add_to_queue(trackURI)
+                        return
+                except:
+                    talk("Something went wrong with spotify sir ... maybe you should see the console")
             if there_exists(["youtube"]):
                 search = record_audio("What do you want me to search for on youtube?")
                 url = f"https://www.youtube.com/results?search_query={search}"
@@ -87,7 +127,7 @@ def respond(voice_data):
                 talk(f'Here is what i found on youtube about {search}')
             if there_exists(["search","google"]):
 
-                search = record_audio('What do you want to search for?')
+                search = record_audio('What do you want to search for sir?')
                 url = f'https://google.com/search?q={search}'
                 webbrowser.get().open(url)
                 talk(f'Here is what i found for {search} on google')
@@ -95,17 +135,18 @@ def respond(voice_data):
 
             if there_exists(["find location", "location" , "find" , "area"]):
 
-                search = record_audio('What is the location?')
+                search = record_audio('What is the location sir?')
                 # print(search)
                 url = f'https://google.nl/maps/place/{search}/&amp;'
                 webbrowser.get().open(url)
-                talk(f'Here is the location of {search}')
+                talk(f'Here is the location of {search} sir')
                 return
 
             if there_exists(["capture","my screen","screenshot"]):
 
                 myScreenshot = pyautogui.screenshot()
                 myScreenshot.save(R'C:\Users\Shadow\OneDrive\Desktop\lightshot\screenshot.png')
+                talk("took a picture of your screen sir")
                 return
                 
             if there_exists(["sleep","leave"]):
@@ -121,7 +162,7 @@ def respond(voice_data):
             if voice_data == None:
                 return
             else:
-                talk('Something went wrong...can you repeat')
+                talk('Something went wrong...can you repeat sir')
     return
 
 
@@ -139,7 +180,7 @@ while(bot.BotStatus):
     startCommand = record_audio()
     if(become_active([startCommand])):
 
-        talk("How can i help you?")
+        talk("How can i help you sir?")
 
         while(bot.isBotawake):
             print("next?")

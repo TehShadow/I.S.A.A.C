@@ -71,6 +71,7 @@ def _authorization_code_request(auth_code):
 @app.route('/callback')
 def callback():
     code = request.args.get('code', '')
+    print(code)
     response = _authorization_code_request(code)
 
     file = open('.env', mode='w', encoding='utf-8')
