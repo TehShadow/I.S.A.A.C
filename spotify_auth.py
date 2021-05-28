@@ -1,84 +1,64 @@
-from urllib.parse import urlencode
-
-import requests
-import json
-
 from flask import Flask
 from flask import render_template
 from flask import request
+import spotipy
+from spotipy import oauth2
+from spotipy_config import CLIENT_ID , CLIENT_SECRET ,CACHE,SPOTIPY_REDIRECT_URI ,SCOPE
 
-from pytify.core import read_config
-from pytify.core import BadRequestError
-from pytify.auth import Authorization
-from pytify.auth import get_auth_key
+
+
 
 app = Flask(__name__)
-
+sp_oauth = oauth2.SpotifyOAuth( client_secret=CLIENT_SECRET , client_id=CLIENT_ID , redirect_uri=SPOTIPY_REDIRECT_URI , scope=SCOPE , cache_path=CACHE )
+cache_token = sp_oauth.get_access_token()
+print(cache_token)
 
 @app.route("/")
 def home():
-    config = read_config()
 
-    params = {
-        'client_id': config.client_id,
-        'response_type': 'code',
-        'redirect_uri': 'http://localhost:3000/callback',
-        'scope': 'user-read-private user-modify-playback-state',
-    }
+    access_token = ""
 
-    enc_params = urlencode(params)
-    url = f'{config.auth_url}?{enc_params}'
-
-    return render_template('index.html', link=url)
+    token_info = sp_oauth.get_cached_token()
 
 
-def _authorization_code_request(auth_code):
-    config = read_config()
+    if token_info:
+        print ("Found cached token!")
+        access_token = token_info['access_token']
+    else:
+        url = request.url
+        code = sp_oauth.parse_response_code(url)
+        if code:
+            print ("Found Spotify auth code in Request URL! Trying to get valid access token...")
+            token_info = sp_oauth.get_access_token(code)
+            access_token = token_info['access_token']
 
-    auth_key = get_auth_key(config.client_id, config.client_secret)
+    if access_token:
+        print ("Access token available! Trying to get user information...")
+        sp = spotipy.Spotify(access_token)
+        results = sp.current_user()
+        shutdown_server()
+        return results
 
-    headers = {'Authorization': f'Basic {auth_key}', }
-
-    options = {
-        'code': auth_code,
-        'redirect_uri': 'http://localhost:3000/callback',
-        'grant_type': 'authorization_code',
-        'json': True
-    }
-
-    response = requests.post(
-        config.access_token_url,
-        headers=headers,
-        data=options
-    )
-
-    content = json.loads(response.content.decode('utf-8'))
-
-    if response.status_code == 400:
-        error_description = content.get('error_description', '')
-        raise BadRequestError(error_description)
-
-    access_token = content.get('access_token', None)
-    token_type = content.get('token_type', None)
-    expires_in = content.get('expires_in', None)
-    scope = content.get('scope', None)
-    refresh_token = content.get('refresh_token', None)
-
-    return Authorization(access_token, token_type, expires_in,
-                         scope, refresh_token)
+    else:
+        htmlForLoginButton()
+        shutdown_server()
+        
 
 
-@app.route('/callback')
-def callback():
-    code = request.args.get('code', '')
-    print(code)
-    response = _authorization_code_request(code)
+def htmlForLoginButton():
+    auth_url = getSPOauthURI()
+    htmlLoginButton = "<a href='" + auth_url + "'>Login to Spotify</a>"
+    return htmlLoginButton
 
-    file = open('.env', mode='w', encoding='utf-8')
-    file.write(f"TOKEN={response.refresh_token}")
-    file.close()
+def getSPOauthURI():
+    auth_url = sp_oauth.get_authorize_url()
+    return auth_url
 
-    return render_template('callback.html')
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
 
 if __name__ == '__main__':
     app.run(host='localhost', port=3000)

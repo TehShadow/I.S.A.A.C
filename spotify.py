@@ -1,21 +1,20 @@
-from json import load
 import json
-import dotenv
 import requests
-from requests.api import head
-import os
-from dotenv import load_dotenv
-from pathlib import Path
-from pprint import pprint
 import re
 
-load_dotenv()
-token = os.getenv('TOKEN')
 
-print(token)
+
+def get_token():
+    f = open(".spotipyoauthcache")
+    token_info_string = f.read()
+    f.close()
+    token_info = json.loads(token_info_string)
+    token = token_info.get("access_token")
+    return token
+
 
 headers = {
-        'Authorization': f'Bearer {token}'
+        'Authorization': f'Bearer {get_token()}'
     }
 
 def pause_spotify():
@@ -107,6 +106,3 @@ def Save():
     })
     print(r)
     print(r.content)
-    
-Save()
-

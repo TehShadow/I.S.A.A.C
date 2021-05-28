@@ -1,19 +1,18 @@
-from math import trunc
-from sys import float_repr_style
 import speech_recognition as sr
 from time import ctime, sleep
 import webbrowser
-import time
 from voice import engine
 from bot import bot
 from admin import admin
 import pyautogui
 from spotify import *
-
-
-
+from systemCom import *
+from weather import currentWeather
+import spotify_auth
 
 r = sr.Recognizer()
+
+# helper functions
 
 def talk(text):
     engine.say(text)
@@ -29,6 +28,16 @@ def there_exists(terms):
     for term in terms:
         if term in voice_data:
             return True
+          
+def setNextCommand(terms , voice_input):
+    for term in terms:
+        if term in voice_input:
+            voice_input = voice_input.split(term)[1]
+            print(voice_input)
+            return voice_input
+        else:
+            return False
+            
 
 def spotify_exists(terms,action):
     for term in terms:
@@ -60,12 +69,15 @@ def record_audio(ask = False):
         # print(f'{voice_data.lower()}')
         return voice_data.lower()
 
+#main respondes
 
 def respond(voice_data):
     try:
+        #1 conversetion
             if there_exists(["what is your name","what's your name","tell me your name"]):
                 talk(f"My name is {bot.name[0]}")
                 return
+        #2 time
 
             if there_exists(["what time is it","time","what's the time"]):
                 time = ctime().split(" ")[3].split(":")[0:2]
@@ -78,9 +90,12 @@ def respond(voice_data):
                 talk(time)
 
                 return
+        #3 spotify
             if there_exists(["spotify"]):
                 try:
-                    action = record_audio("What do you want me to do on spotify sir?")
+                    action = setNextCommand(["search","find"],voice_data)
+                    if (action == False):
+                        action = record_audio("What do you want me to do on spotify sir?")
 
                     if spotify_exists(["pause" , "stop"] , action):
                         pause_spotify()
@@ -120,42 +135,91 @@ def respond(voice_data):
                         return
                 except:
                     talk("Something went wrong with spotify sir ... maybe you should see the console")
+                    return
+        #4 youtube
             if there_exists(["youtube"]):
-                search = record_audio("What do you want me to search for on youtube?")
+                search = setNextCommand(["search","find"],voice_data)
+                if (search == False):
+                    search = record_audio("What do you want me to search for on youtube?")
                 url = f"https://www.youtube.com/results?search_query={search}"
                 webbrowser.get().open(url)
                 talk(f'Here is what i found on youtube about {search}')
-            if there_exists(["search","google"]):
+                search = False
+                return
+        #5 google search
 
-                search = record_audio('What do you want to search for sir?')
+            if there_exists(["search","google"]):
+                search = setNextCommand(["search","find"],voice_data)
+                if (search == False):
+                    search = record_audio('What do you want to search for sir?')
                 url = f'https://google.com/search?q={search}'
                 webbrowser.get().open(url)
                 talk(f'Here is what i found for {search} on google')
+                search = False
                 return
-
+        #6 location
             if there_exists(["find location", "location" , "find" , "area"]):
-
-                search = record_audio('What is the location sir?')
+                search = setNextCommand(["search","find"],voice_data)
+                if (search == False):
+                    search = record_audio('What is the location sir?')
                 # print(search)
                 url = f'https://google.nl/maps/place/{search}/&amp;'
                 webbrowser.get().open(url)
                 talk(f'Here is the location of {search} sir')
+                search = False
                 return
-
+        #7 screen capture
             if there_exists(["capture","my screen","screenshot"]):
-
                 myScreenshot = pyautogui.screenshot()
                 myScreenshot.save(R'C:\Users\Shadow\OneDrive\Desktop\lightshot\screenshot.png')
                 talk("took a picture of your screen sir")
                 return
+
+        #8 system actions
+            if there_exists(["system","computer"]):
+                action = setNextCommand(["shutdown","restart","create","read","file","write"],voice_data)
+
+                if(action == False):
+                    action = record_audio("What shall i do with to the computer sir?")
+
+                if gerenal_exists(["shutdown"],action):
+                    anwser = record_audio("Sir are you sure you want to shutdown the computer?")
+                    
+                    if gerenal_exists(["yes","ya"],anwser):
+                        Shutdown()
+                        return
+                if gerenal_exists(["restart"],action):
+                    if gerenal_exists(["yes","ya"],anwser):
+                        Restart()
+                        return
+                if gerenal_exists(["create" , "write" ,"touch"],action):
+                    fileName = record_audio("The name of the file sir?")
+                    create_file(fileName)
+                    return
+        #9 weather
+            if there_exists(["weather","degrees","celsius"]):
+
+                action = setNextCommand(["for","current","now"],voice_data)
+
+                if(action == False):
+                    action = record_audio("weather command sir?")
                 
+                city = record_audio("Do you want to specify a city sir?")
+
+                if gerenal_exists(["current", "now"],action):
+                    if(city == "no"):
+                        talk(currentWeather())
+                    else:
+                        talk(currentWeather(city))
+                    return
+
+        #10 sleep mode   
             if there_exists(["sleep","leave"]):
                 talk(f'Going to sleep mode')
                 bot.setSleep()
-
                 return
-            if there_exists(["exit" ,"quit","shutdown","power off"]):
-
+        #11 exit
+            if there_exists(["exit" ,"quit","shut down","power off"]):
                 bot.quit()
                 return
     except:
