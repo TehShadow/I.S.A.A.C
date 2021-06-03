@@ -2,7 +2,6 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from requests import api
 import json
 import pprint as p
 
@@ -18,13 +17,7 @@ def kelvin_to_celsius(number):
     number = float(number)
     return int(number-kelvin)
 
-#main functions
-def weather_5day(city="athens"):
-    url = f"{API_URL}?q={city}&appid={API_key}"
-    print(url)
-    r = requests.get(f"{API_URL}forecast?q={city}&appid={API_key}")
-    p.pprint(json.loads(r.content))
-    
+#main functions    
 def currentWeather(city="athens"):
     url = f"weather?q={city}&appid={API_key}"
     r= requests.get(f"{API_URL}{url}")

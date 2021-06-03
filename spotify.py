@@ -92,17 +92,16 @@ def get_current_track():
     print(r)
     result = r.content
     result = json.loads(result)
-    uri = result["context"]["uri"]
+    uri = result["item"]["uri"]
     id = re.split("([^:]*$)",uri)
-    print(uri)
     print(id[1])
+    print(uri)
     return id[1]
 
 def Save():
     ids = get_current_track()
     r = requests.put("https://api.spotify.com/v1/me/tracks" , headers=headers,
     params={
-        "ids": [f"ids={ids}"]
+        "ids": [ids]
     })
-    print(r)
     print(r.content)

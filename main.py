@@ -8,7 +8,6 @@ import pyautogui
 from spotify import *
 from systemCom import *
 from weather import currentWeather
-import spotify_auth
 
 r = sr.Recognizer()
 
@@ -77,6 +76,14 @@ def respond(voice_data):
             if there_exists(["what is your name","what's your name","tell me your name"]):
                 talk(f"My name is {bot.name[0]}")
                 return
+            if there_exists(["rename" , "overide" , "change name"]):
+                name = record_audio(f"That is my new name sir?")
+                bot.name[0] = name
+                talk(f"My name is now set to {bot.name[0]}")
+            if there_exists(["admin name" , "admin" , "my name" ,"i"]):
+                name = record_audio(f"That do you want me to you sir?")
+                admin.name[0] = name
+                talk(f"I shall call you by the name of {admin.name[0]}")
         #2 time
 
             if there_exists(["what time is it","time","what's the time"]):
@@ -93,7 +100,7 @@ def respond(voice_data):
         #3 spotify
             if there_exists(["spotify"]):
                 try:
-                    action = setNextCommand(["search","find"],voice_data)
+                    action = setNextCommand(["search","find" ,"pause" , "stop" ],voice_data)
                     if (action == False):
                         action = record_audio("What do you want me to do on spotify sir?")
 
@@ -113,6 +120,9 @@ def respond(voice_data):
                         return
                     if spotify_exists(["previous","before"] , action):
                         previous()
+                        return
+                    if spotify_exists(["save" , "like"], action):
+                        Save()
                         return
                     if spotify_exists(["shuffle","random"],action):
                         shuffle()
