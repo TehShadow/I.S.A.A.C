@@ -77,13 +77,15 @@ def respond(voice_data):
                 talk(f"My name is {bot.name[0]}")
                 return
             if there_exists(["rename" , "overide" , "change name"]):
-                name = record_audio(f"That is my new name sir?")
+                name = record_audio(f"what is my new name sir?")
                 bot.name[0] = name
                 talk(f"My name is now set to {bot.name[0]}")
-            if there_exists(["admin name" , "admin" , "my name" ,"i"]):
-                name = record_audio(f"That do you want me to you sir?")
+                return
+            if there_exists(["admin name" , "admin" , "my name"]):
+                name = record_audio(f"what do you me to call you sir?")
                 admin.name[0] = name
                 talk(f"I shall call you by the name of {admin.name[0]}")
+                return
         #2 time
 
             if there_exists(["what time is it","time","what's the time"]):
@@ -100,7 +102,7 @@ def respond(voice_data):
         #3 spotify
             if there_exists(["spotify"]):
                 try:
-                    action = setNextCommand(["search","find" ,"pause" , "stop" ],voice_data)
+                    action = setNextCommand(["search","find" ,"pause" , "stop" , "resume" , "save" , "like" ,"random" ],voice_data)
                     if (action == False):
                         action = record_audio("What do you want me to do on spotify sir?")
 
@@ -142,6 +144,8 @@ def respond(voice_data):
                             anwser = record_audio("Shoud i add it to the queue sir?")
                             if gerenal_exists(["yes","i","yea"],anwser):
                                 add_to_queue(trackURI)
+                        return
+                    if action == None:
                         return
                 except:
                     talk("Something went wrong with spotify sir ... maybe you should see the console")
@@ -217,11 +221,13 @@ def respond(voice_data):
                 city = record_audio("Do you want to specify a city sir?")
 
                 if gerenal_exists(["current", "now"],action):
-                    if(city == "no"):
+                    if(city == "no" or city == "default"):
                         talk(currentWeather())
-                    else:
+                    elif(city != None):
                         talk(currentWeather(city))
-                    return
+                    else:
+                        talk("You need to specify a city sir")
+
 
         #10 sleep mode   
             if there_exists(["sleep","leave"]):
