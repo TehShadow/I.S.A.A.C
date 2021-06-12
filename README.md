@@ -3,7 +3,7 @@ Voice assistand
 
 Command for:
   -time
-  -spotify with a full oath using a flash server (needs spotify app info)
+  -spotify with a full oath2 using flask server (needs spotify app info)
   -youtube
   -google
   -location
